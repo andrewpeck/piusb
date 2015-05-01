@@ -1,27 +1,23 @@
 .PHONY : clean
 
-CC=g++
+CXX=g++
 
-CPPFLAGS= -fPIC -g -L.
-LDFLAGS= -shared -lusb-1.0
-
-SOURCES = $(shell echo *.cpp)
-HEADERS = $(shell echo *.hpp)
-OBJECTS=$(SOURCES:.cpp=.o)
+CPPFLAGS= -fPIC -g -Wall -I.
+LDFLAGS= -shared
 
 TARGET=libpiusb.so
 
-all: $(TARGET)
+all:
+	$(CXX) libpiusb.cpp -fPIC -g -L. -o libpiusb.so -lusb-1.0 -shared
 
 clean:
-	rm -f $(OBJECTS) $(TARGET)
+	rm -f libpiusb.so piusb
 
 install: 
 	cp libpiusb.so /usr/lib/libpiusb.so
+	chmod 755 /usr/lib/libpiusb.so
+	cp piusb.hpp /usr/include/piusb.hpp
+	chmod 644 /usr/include/piusb.hpp
 
 exe: 
-	$(CC) piusb.cpp -o piusb -L. -lpiusb
-
-$(TARGET) : $(OBJECTS)
-	$(CC) $(CPPFLAGS) $(OBJECTS) -o $@ $(LDFLAGS)
-
+	$(CXX) -Wall piusb.cpp -o piusb -lpiusb
