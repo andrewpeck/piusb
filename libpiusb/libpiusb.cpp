@@ -1,7 +1,7 @@
 // Compiles with :
 //      g++ -o motor motor.cpp -lusb-1.0
 //
-#include "libpiusb.hpp"
+#include "piusb.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,7 +19,7 @@
 #define debug_print(fmt, ...) \
             do { if (DEBUG) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
 
-int picard::usbOpen(int vid, int pid)
+int Picard::usbOpen(int vid, int pid)
 {
     /* pointer pointer to list of devices */
     libusb_device **devs;
@@ -84,7 +84,7 @@ int picard::usbOpen(int vid, int pid)
     return EXIT_SUCCESS;
 }
 
-int picard::usbClose()
+int Picard::usbClose()
 {
     /* release the claimed interface */
     int status = libusb_release_interface(dev_handle, 0);
@@ -103,7 +103,7 @@ int picard::usbClose()
     return EXIT_SUCCESS;
 }
 
-int picard::usbWrite(unsigned char *data, int length)
+int Picard::usbWrite(unsigned char *data, int length)
 {
     debug_print("%s", "Writing Data: ");
     for (int i=0; i<7; i++) {
@@ -122,7 +122,7 @@ int picard::usbWrite(unsigned char *data, int length)
     return EXIT_SUCCESS;
 }
 
-int picard::usbRead (unsigned char *data, int length)
+int Picard::usbRead (unsigned char *data, int length)
 {
     int count;
     int status = libusb_bulk_transfer(dev_handle, (ENDPOINT | LIBUSB_ENDPOINT_IN), data, length, &count, 0);
@@ -141,16 +141,16 @@ int picard::usbRead (unsigned char *data, int length)
     return EXIT_SUCCESS;
 }
 
-twister::twister() {
+Twister::Twister() {
     usbOpen(vendor_id, product_id);
     setVelocity(VELOCITY);
 }
 
-twister::~twister() {
+Twister::~Twister() {
     usbClose();
 }
 
-int twister::setZero()
+int Twister::setZero()
 {
     unsigned char data[8] = {0};
     usbRead(data,8);
@@ -159,7 +159,7 @@ int twister::setZero()
     return EXIT_SUCCESS;
 }
 
-int twister::setVelocity (int velocity)
+int Twister::setVelocity (int velocity)
 {
     velocity_ = (0xF & (16-velocity)) << 4;
     unsigned char data[8] = {0};
@@ -172,7 +172,7 @@ int twister::setVelocity (int velocity)
     return EXIT_SUCCESS;
 }
 
-int twister::setPosition (int position)
+int Twister::setPosition (int position)
 {
     if (position > 0x7FF || position < (-1)*0x7FF)
         return EXIT_FAILURE;
@@ -187,7 +187,7 @@ int twister::setPosition (int position)
     return EXIT_SUCCESS;
 }
 
-int twister::getPosition ()
+int Twister::getPosition ()
 {
     unsigned char data[8] = {0};
     usbRead(data,8);
@@ -200,16 +200,16 @@ int twister::getPosition ()
     return (position);
 }
 
-motor::motor() {
+Motor::Motor() {
     usbOpen(vendor_id, product_id);
     setVelocity(VELOCITY);
 }
 
-motor::~motor() {
+Motor::~Motor() {
     usbClose();
 }
 
-int motor::goHome()
+int Motor::goHome()
 {
     unsigned char data[8] = {0};
 
@@ -219,7 +219,7 @@ int motor::goHome()
     return EXIT_SUCCESS;
 }
 
-int motor::setVelocity (int velocity)
+int Motor::setVelocity (int velocity)
 {
     velocity_ = (0xF & (16-velocity)) << 4;
     unsigned char data[8] = {0};
@@ -232,7 +232,7 @@ int motor::setVelocity (int velocity)
     return EXIT_SUCCESS;
 }
 
-int motor::setPosition (int position)
+int Motor::setPosition (int position)
 {
     if (position > 1900 || position < 0)
         return EXIT_FAILURE;
@@ -247,7 +247,7 @@ int motor::setPosition (int position)
     return EXIT_SUCCESS;
 }
 
-int motor::getPosition ()
+int Motor::getPosition ()
 {
     unsigned char data[8] = {0};
     usbRead(data,8);
@@ -257,17 +257,17 @@ int motor::getPosition ()
     return (position);
 }
 
-relay::relay()
+Relay::Relay()
 {
     usbOpen(vendor_id, product_id);
 }
 
-relay::~relay()
+Relay::~Relay()
 {
     usbClose();
 }
 
-int relay::setState (int status)
+int Relay::setState (int status)
 {
     unsigned char data[8] = {0};
     status = status & 0xF;
@@ -278,7 +278,7 @@ int relay::setState (int status)
     return (status);
 }
 
-int relay::setState(int relay, bool on)
+int Relay::setState(int relay, bool on)
 {
     if (relay < 0 || relay > 3)
         return EXIT_FAILURE;
@@ -304,7 +304,7 @@ int relay::setState(int relay, bool on)
     return (status);
 }
 
-int relay::getState()
+int Relay::getState()
 {
     unsigned char data[8] = {0};
 
@@ -328,14 +328,14 @@ int relay::getState()
     return status;
 }
 
-void laser::setOn()
+void Laser::setOn()
 {
     unsigned char data[8] = {0};
     data[0] = 0x04;
     usbWrite(data, sizeof(data)/sizeof(data[0]));
 }
 
-void laser::setOff()
+void Laser::setOff()
 {
     unsigned char data[8] = {0};
     usbWrite(data, sizeof(data)/sizeof(data[0]));
@@ -351,12 +351,12 @@ void laser::setOff()
 //    return ((bool) status);
 //}
 
-laser::laser()
+Laser::Laser()
 {
     usbOpen(vendor_id, product_id);
 }
 
-laser::~laser()
+Laser::~Laser()
 {
     usbClose();
 }
